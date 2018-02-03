@@ -2,6 +2,7 @@
 import pygame
 from math import atan2, degrees, pi, cos, sin, hypot, sqrt
 from scipy.stats import truncnorm
+import random
 
 pygame.init()
 
@@ -18,17 +19,31 @@ window = pygame.display.set_mode((window_w, window_h))
 pygame.display.set_caption("Bacteria and White Blood Cells")
 clock = pygame.time.Clock()
 
+bacteria_random_range = 5
 bacteria_x = 200
 bacteria_y = 100
 block_size = 20
 jump_size = 2
-k = 120
+k = 500
 
 def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
     return truncnorm(
         (low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
 
+def within_window(x, y):
+    # keep within window
+    if x + block_size > window_w or x < 0:
+        x = -x
+    if y + block_size > window_h or y < 0:
+        y = -y
+    return (x, y)
+
 def create_bacteria():
+    global bacteria_x
+    global bacteria_y
+    bacteria_x += random.randint(-bacteria_random_range, bacteria_random_range)
+    bacteria_y += random.randint(-bacteria_random_range, bacteria_random_range)
+    bacteria_x, bacteria_y = within_window(bacteria_x, bacteria_y)
     pygame.draw.circle(window, cyan, (bacteria_x, bacteria_y), block_size)
 
 def get_distance(x, y):
@@ -83,13 +98,8 @@ def game_loop():
 
         pos_x += coords[0]
         pos_y += coords[1]
+        pos_x, pos_y = within_window(pos_x, pos_y)
         print("New pos: " + str(pos_x) + ", " + str(pos_y))
-
-        # keep within window
-        if pos_x + block_size > window_w or pos_x < 0:
-            pos_x = -pos_x
-        if pos_y + block_size > window_h or pos_y < 0:
-            pos_y = -pos_y
 
         # DRAW
         window.fill(white)
