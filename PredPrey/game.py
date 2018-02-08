@@ -24,7 +24,7 @@ bacteria_x = 200
 bacteria_y = 100
 block_size = 20
 jump_size = 2
-k = 500
+k = .05
 
 def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
     return truncnorm(
@@ -53,7 +53,7 @@ def get_distance(x, y):
 
 def get_std_dev(x, y, angle):
     distance = get_distance(x, y)
-    sigma = k / distance
+    sigma = k * distance**(.5)
     std = get_truncated_normal(mean=angle, sd=sigma, low=0, upp=2*pi)
     return std.rvs()
 
@@ -73,6 +73,9 @@ def next_xy(x, y, angle):
     next_y = jump_size * sin(angle)
     return (int(next_x), int(-next_y))
 
+def check_collision(x, y):
+	return sqrt((x-bacteria_x)**2 + (y-bacteria_y)**2) <= 2*block_size
+
 def game_loop():
     pos_x = 700
     pos_y = 700
@@ -87,8 +90,7 @@ def game_loop():
                 quit()
 
         # check first if we've hit our target
-        cond = sqrt((pos_x-bacteria_x)**2 + (pos_y-bacteria_y)**2) <= 2*block_size
-        if cond:
+        if check_collision(pos_x, pos_y):
             print("Collision found!")
             return
 
