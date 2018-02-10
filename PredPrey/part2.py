@@ -13,6 +13,7 @@ white = (255, 255, 255)
 cyan = (0, 255, 255)
 black = (0, 0, 0)
 red = (255, 0, 0)
+green = (0, 255, 0)
 
 FPS = 120
 
@@ -79,7 +80,13 @@ def get_angle(x, y):
     print("Degrees: " + str(degs))
     return rads
 
-def next_xy(x, y, angle):
+def p_model(angle):
+    next_x = jump_size * cos(angle)
+    next_y = jump_size * sin(angle)
+    return (int(next_x), int(-next_y))
+
+
+def model(x, y, angle):
     angle = get_std_dev(x, y, angle)
     print("Std Angle: " + str(degrees(angle)))
     next_x = jump_size * cos(angle)
@@ -95,6 +102,8 @@ def inside_stink(x, y):
 def game_loop():
     pos_x = 700
     pos_y = 700
+    perfect_x = 700
+    perfect_y = 700
 
     running = True
 
@@ -115,11 +124,17 @@ def game_loop():
 	create_stink()
 	create_bacteria()
 
+	p_rads = get_angle(perfect_x, perfect_y)
+	p_coords = p_model(p_rads)
+	perfect_x += p_coords[0]
+	perfect_y += p_coords[1]
+	pygame.draw.circle(window, green, (perfect_x, perfect_y), block_size)
+
 	# check if we are now inside the stink
 	if inside_stink(pos_x, pos_y):
 		# get new angle
         	rads = get_angle(pos_x, pos_y)
-        	coords = next_xy(pos_x, pos_y, rads)
+        	coords = model(pos_x, pos_y, rads)
         	pos_x += coords[0]
         	pos_y += coords[1]
         else:
