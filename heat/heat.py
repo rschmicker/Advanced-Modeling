@@ -23,12 +23,13 @@ temp0 = 0
 # time delta
 k = 0.01
 
-iterations = 50
+iterations = 500
+slices = 20
 
 # Known conditions at the edges
 # Evenly spaced increments to 50
 # x0, h = np.linspace(0,pi, retstep=True)
-space, h = np.linspace(0, pi, iterations, retstep=True)
+space, h = np.linspace(0, pi, slices, retstep=True)
 t0 = 0
 
 # multiplier r
@@ -81,6 +82,6 @@ def animate(i):         #The plot shows the temperature evolving with time
     plt.legend()
     if p == iterations:
     	sys.exit(0)
-anim = animation.FuncAnimation(fig,animate,frames=360,interval=20)
+anim = animation.FuncAnimation(fig,animate,frames=360,interval=200)
 plt.show()
 
