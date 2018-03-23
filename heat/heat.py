@@ -5,6 +5,7 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import sys
 import math
+from numpy.linalg import inv
 
 fig = plt.figure()
 fig.set_dpi(100)
@@ -30,6 +31,35 @@ t0 = 0
 
 # multiplier r
 r = k/(h**2)
+sigma = 2 * r
+
+def build_matrix_A():
+	A = np.zeros((slices, slices))
+	for i in range(slices):
+		A[i][i] = 2 + 2 * sigma
+		try:
+			A[i][i+1] = -sigma
+		except:
+			pass
+		try:
+			A[i+1][i] = -sigma
+		except:
+			pass
+	return A
+
+def build_matrix_B():
+	B = np.zeros((slices, slices))
+        for i in range(slices):
+                B[i][i] = 2 - 2 * sigma
+                try:
+                        B[i][i+1] = sigma
+                except:
+                        pass
+		try:
+			B[i+1][i] = sigma
+		except:
+			pass
+	return B
 
 # Compare Heat function
 def u_compare(x,t):
@@ -61,11 +91,23 @@ for point in space:
 temp = [x0]
 time = [t0]
 compare_temp = []
+crank_temp = []
 
 error_sum = 0
+crank_error_sum = 0
+
+A = build_matrix_A()
+B = build_matrix_B()
+A_inverse = inv(A)
 
 for i in range(iterations):
 	current_temps = temp[i]
+	
+	# crank nicolson
+	next_crank = A_inverse.dot(B).dot(current_temps)
+	crank_temp.append(next_crank)
+
+	# implicit
 	next_temps = []
 	next_temps.append(0) # zero at the edges
 	for x in range(1, len(current_temps) - 1):
@@ -73,25 +115,29 @@ for i in range(iterations):
 		next_temps.append(u_next)
 
 	# compare
-	compare_next = u_compare(x0, t0)
+	compare_next = u_compare(space, t0)
 	compare_temp.append(compare_next)
 	
 	next_temps.append(0) # zero at the edges
 	error_sum += compute_diff(next_temps, compare_next)
+	crank_error_sum += compute_diff(next_crank, compare_next)
 	temp.append(next_temps)
 	time.append(t0)
 	t0 += k
 
-print("Error: " + str(math.sqrt(float(error_sum))))
+print("Implicit error: " + str(math.sqrt(float(error_sum))))
+print("Crank Nicolson error: " + str(math.sqrt(float(crank_error_sum))))
 
 p = 0
 def animate(i):         #The plot shows the temperature evolving with time
     global p            #at each point x in the rod
     x = temp[p]            #The ends of the rod are kept at temperature temp0
     n = compare_temp[p]
+    c = crank_temp[p]
     p += 1              #The rod is heated in one spot, then it cools down
     ax1.clear()
     plt.plot(space,x,color='red',label='Temperature at each x')
+    plt.plot(space, c, color='green', label='Crank Nicolson')
     plt.plot(space, n, color='blue', label='e^(-2t)sin(x)')
     plt.plot(0,0,color='red',label='Elapsed time '+str(round(time[p],2)))
     plt.grid(True)
