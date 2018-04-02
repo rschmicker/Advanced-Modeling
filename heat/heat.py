@@ -92,6 +92,7 @@ temp = [x0]
 time = [t0]
 compare_temp = []
 crank_temp = []
+point_source_temp = []
 
 error_sum = 0
 crank_error_sum = 0
@@ -99,6 +100,8 @@ crank_error_sum = 0
 A = build_matrix_A()
 B = build_matrix_B()
 A_inverse = inv(A)
+one_vector = np.zeros(slices)
+one_vector[int(slices/2)] = 1
 
 for i in range(iterations):
 	current_temps = temp[i]
@@ -106,6 +109,10 @@ for i in range(iterations):
 	# crank nicolson
 	next_crank = A_inverse.dot(B).dot(current_temps)
 	crank_temp.append(next_crank)
+
+	# point heat source
+	next_point_heat = np.add(A_inverse.dot(B).dot(current_temps), A_inverse.dot(one_vector))
+	point_source_temp.append(next_point_heat)
 
 	# implicit
 	next_temps = []
@@ -134,11 +141,13 @@ def animate(i):         #The plot shows the temperature evolving with time
     x = temp[p]            #The ends of the rod are kept at temperature temp0
     n = compare_temp[p]
     c = crank_temp[p]
+    h = point_source_temp[p]
     p += 1              #The rod is heated in one spot, then it cools down
     ax1.clear()
-    plt.plot(space,x,color='red',label='Temperature at each x')
+    plt.plot(space, x, color='red', label='Temperature at each x')
     plt.plot(space, c, color='green', label='Crank Nicolson')
-    plt.plot(space, n, color='blue', label='e^(-2t)sin(x)')
+    plt.plot(space, n, color='blue', label='Implicit Method')
+    plt.plot(space, h, color='black', label='Point Heat Source')
     plt.plot(0,0,color='red',label='Elapsed time '+str(round(time[p],2)))
     plt.grid(True)
     plt.ylim([temp0,2.5])
