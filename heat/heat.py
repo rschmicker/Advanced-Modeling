@@ -12,16 +12,16 @@ fig.set_dpi(100)
 ax1 = fig.add_subplot(1,1,1)
 
 # diffusion constant
-diff_const = 2
+diff_const = 0.2
 
 # Temperate of rod at rest
 temp0 = 0
 
 # time delta
-k = 0.01
+k = 0.2
 
 iterations = 500
-slices = 20
+slices = 40
 
 # Known conditions at the edges
 # Evenly spaced increments to 50
@@ -45,6 +45,10 @@ def build_matrix_A():
 			A[i+1][i] = -sigma
 		except:
 			pass
+	A[[0],[0]] = 2 + 2/3 * sigma
+	A[[1],[0]] = -2/3 * sigma
+	A[[slices-1],[slices-1]] = 2 + 2/3 * sigma
+	A[[slices-2],[slices-1]] = -2/3 * sigma
 	return A
 
 def build_matrix_B():
@@ -66,7 +70,7 @@ def u_compare(x,t):
 	return np.exp(-diff_const*t)*np.sin(x)
 
 def g(x):
-	return math.sin(x)
+	return 0 # math.sin(x)
 
 def u(x, t, current_temps):
 	left = current_temps[x - 1]
@@ -80,6 +84,12 @@ def compute_diff(a, b):
 	for i in range(len(a)):
 		total += abs(a[i] - b[i]) ** 2
 	return total
+
+def left_boundary(vector):
+	return vector[1]*(4/3) - (1/3)*vector[2]
+
+def right_boundary(vector):
+	return vector[len(vector)-2]*(4/3) - vector[len(vector)-3]*(1/3) 
 
 x0 = []
 for point in space:
@@ -101,7 +111,6 @@ A = build_matrix_A()
 B = build_matrix_B()
 A_inverse = inv(A)
 one_vector = np.zeros(slices)
-one_vector[int(slices/2)] = 1
 
 for i in range(iterations):
 	current_temps = temp[i]
@@ -111,7 +120,10 @@ for i in range(iterations):
 	crank_temp.append(next_crank)
 
 	# point heat source
+	one_vector[int(slices/2)] += np.arctan(k)
 	next_point_heat = np.add(A_inverse.dot(B).dot(current_temps), A_inverse.dot(one_vector))
+	next_point_heat[0] = left_boundary(next_point_heat)
+	next_point_heat[len(next_point_heat)-1] = right_boundary(next_point_heat)
 	point_source_temp.append(next_point_heat)
 
 	# implicit
