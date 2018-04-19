@@ -5,8 +5,6 @@ from scipy.stats import truncnorm
 import random
 import numpy as np
 from numpy import pi
-import matplotlib.animation as animation
-import matplotlib.pyplot as plt
 import sys
 import math
 from numpy.linalg import inv
@@ -196,7 +194,6 @@ def game_loop():
     diffusion_round = 0
 
     while True:
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -206,6 +203,7 @@ def game_loop():
         if check_collision(white_x, white_y, bacteria_x, bacteria_y, block_size):
             print("Collision found!")
             return
+            
 	point_source_temp = calc_diffusion_round(point_source_temp, diffusion_round)
 
 	# Draw constants
@@ -215,17 +213,6 @@ def game_loop():
 
 	white_x = next_x(white_x, point_source_temp)
 
-	# check if we are now inside the stink
-	# if inside_stink(white_x, white_y):
-	# 	# get new angle
-	#    	rads = get_angle(pos_x, pos_y)
-	#    	coords = model(pos_x, pos_y, rads)
-	#    	pos_x += coords[0]
-	#    	pos_y += coords[1]
-	#    else:
-	# 	white_x += random.randint(-random_range, random_range)
-
-	
 
 	white_x, white_y = within_window(white_x, white_y)
 	print("New pos: " + str(white_x) + ", " + str(white_y))

@@ -102,6 +102,12 @@ def inside_stink(x, y):
 	return sqrt((x-bacteria_x)**2 + (y-bacteria_y)**2) <= stink_size
 
 # diffusion function
+"""
+create mesh grird same size as windows height and width
+reference the temp grid to determine where to go
+max temp from current temp at this cell to swap out for our distance
+
+"""
 def diffusion(x,y,t):
     time_reverse = 10
     T = 5 # initial temp
