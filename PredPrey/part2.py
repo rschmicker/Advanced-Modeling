@@ -2,7 +2,9 @@
 import pygame
 from math import atan2, degrees, pi, cos, sin, hypot, sqrt
 from scipy.stats import truncnorm
+from numpy import exp
 import random
+import numpy as np
 
 pygame.init()
 
@@ -99,12 +101,23 @@ def check_collision(x, y):
 def inside_stink(x, y):
 	return sqrt((x-bacteria_x)**2 + (y-bacteria_y)**2) <= stink_size
 
+# diffusion function
+def diffusion(x,y,t):
+    time_reverse = 10
+    T = 5 # initial temp
+    s = 2 # sigma squared
+    x = np.linspace(-5,5,30)
+    y = np.linspace(-5,5,30)
+    x,y = np.meshgrid(x,y)
+    return (T/sqrt(1+4*max(time_reverse - t, 0)/s))*exp(-(x**2+y**2)/(s+4*max(time_reverse - t, 0)))
+
 def game_loop():
     pos_x = 700
     pos_y = 700
     perfect_x = 700
     perfect_y = 700
-
+    t0 = 0
+    dt = 0.05
     running = True
 
     while running:
@@ -123,6 +136,8 @@ def game_loop():
 	window.fill(white)
 	create_stink()
 	create_bacteria()
+
+	print(diffusion(bacteria_x, bacteria_y, t0))
 
 	p_rads = get_angle(perfect_x, perfect_y)
 	p_coords = p_model(p_rads)
@@ -147,5 +162,6 @@ def game_loop():
         pygame.draw.circle(window, black, (pos_x, pos_y) , block_size)
 	pygame.display.update()
         clock.tick(FPS)
+	t0 += dt
 
 game_loop()
