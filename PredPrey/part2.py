@@ -47,12 +47,14 @@ def within_window(x, y):
         y = y + block_size
     return (x, y)
 
-def create_stink():
-	global bacteria_x
-	global bacteria_y
-	global stink_size
-	pygame.draw.circle(window, red, (bacteria_x, bacteria_y), stink_size)
-	stink_size += 1
+def create_stink(meshgrid):
+    x = 400
+    y = 400
+    print(100*meshgrid[400])
+    for radius in range(400, 0, -1):
+	color = (max(min(255, 150 + 100*meshgrid[radius][400]), 0), 0, 0)
+        pygame.draw.circle(window, color, (x, y), radius)
+    # sys.exit(0)
 
 def create_bacteria():
     global bacteria_x
@@ -79,7 +81,7 @@ def get_angle(x, y):
     rads = atan2(-dy,dx)
     rads %= 2*pi
     degs = degrees(rads)
-    print("Degrees: " + str(degs))
+    # print("Degrees: " + str(degs))
     return rads
 
 def p_model(angle):
@@ -90,7 +92,7 @@ def p_model(angle):
 
 def model(x, y, angle, mesh):
     angle = get_std_dev(x, y, mesh, angle)
-    print("Std Angle: " + str(degrees(angle)))
+    # print("Std Angle: " + str(degrees(angle)))
     next_x = jump_size * cos(angle)
     next_y = jump_size * sin(angle)
     return (int(next_x), int(-next_y))
@@ -110,10 +112,10 @@ max temp from current temp at this cell to swap out for our distance
 """
 def diffusion_map(x,y,t):
     time_reverse = 10
-    T = 50 # initial temp
+    T = 5 # initial temp
     s = 2 # sigma squared
-    x = np.linspace(-50,50,800)
-    y = np.linspace(-50,50,800)
+    x = np.linspace(-5,5,800)
+    y = np.linspace(-5,5,800)
     x,y = np.meshgrid(x,y)
     return (T/sqrt(1+4*max(time_reverse - t, 0)/s))*exp(-(x**2+y**2)/(s+4*max(time_reverse - t, 0)))
 
@@ -140,10 +142,10 @@ def game_loop():
 
 	# Draw constants
 	window.fill(white)
-	# create_stink()
-	create_bacteria()
-
+	
 	diff_map = diffusion_map(bacteria_x, bacteria_y, t0)
+	create_stink(diff_map)
+	create_bacteria()
 
 	# p_rads = get_angle(perfect_x, perfect_y)
 	# p_coords = p_model(p_rads)
@@ -163,7 +165,7 @@ def game_loop():
 		pos_y += random.randint(-random_range, random_range)
 
 	pos_x, pos_y = within_window(pos_x, pos_y)
-	print("New pos: " + str(pos_x) + ", " + str(pos_y))
+	# print("New pos: " + str(pos_x) + ", " + str(pos_y))
 	# DRAW
 	pygame.draw.circle(window, black, (pos_x, pos_y) , block_size)
 	pygame.display.update()
