@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import pygame
-from math import atan2, degrees, pi, cos, sin, hypot, sqrt
-from scipy.stats import truncnorm
+from math import atan2, atan, degrees, pi, cos, sin, hypot, sqrt
+from scipy.stats import truncnorm, norm
 from numpy import exp
 import random
 import numpy as np
@@ -17,7 +17,7 @@ black = (0, 0, 0)
 red = (255, 0, 0)
 green = (0, 255, 0)
 
-FPS = 120
+FPS = 240
 
 window = pygame.display.set_mode((window_w, window_h))
 pygame.display.set_caption("Bacteria and White Blood Cells")
@@ -28,8 +28,9 @@ bacteria_x = 400
 bacteria_y = 400
 block_size = 20
 stink_size = 10
-jump_size = 2
+jump_size = 5
 k = .05
+anglerange=pi/2
 
 def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
     return truncnorm(
@@ -51,9 +52,9 @@ def create_stink(meshgrid):
     x = 400
     y = 400
     print(100*meshgrid[400])
-    for radius in range(400, 0, -1):
-	color = (max(min(255, 150 + 100*meshgrid[radius][400]), 0), 0, 0)
-        pygame.draw.circle(window, color, (x, y), radius)
+    for radius in range(0, 400, 1):
+	color = (255*(meshgrid[radius][400]/100), 0, 0)
+        pygame.draw.circle(window, color, (x, y), 400-radius)
     # sys.exit(0)
 
 def create_bacteria():
@@ -70,9 +71,10 @@ def get_distance(x, y):
     return hypot(dx, dy)
 
 def get_std_dev(x, y, mesh, angle):
-    distance = mesh[x][y] # get_distance(x, y)
-    sigma = k * distance**(.5)
-    std = get_truncated_normal(mean=angle, sd=sigma, low=0, upp=2*pi)
+    localstink = mesh[x][y] # get_distance(x, y)
+    sigma = (100-localstink)/100*anglerange
+    #std = get_truncated_normal(mean=angle, sd=sigma, low=0, upp=2*pi)
+    std = norm(angle, sigma)
     return std.rvs()
 
 def get_angle(x, y):
@@ -111,17 +113,18 @@ max temp from current temp at this cell to swap out for our distance
 
 """
 def diffusion_map(x,y,t):
-    time_reverse = 10
+    #time_reverse = 10
     T = 5 # initial temp
-    s = 2 # sigma squared
+    s = 1 # sigma squared
     x = np.linspace(-5,5,800)
     y = np.linspace(-5,5,800)
     x,y = np.meshgrid(x,y)
-    return (T/sqrt(1+4*max(time_reverse - t, 0)/s))*exp(-(x**2+y**2)/(s+4*max(time_reverse - t, 0)))
+    return 100*(2/pi)*atan(t/5)*exp(-(x**2 + y**2)/(10))    
+	#return (T/sqrt(1+4*max(time_reverse - t, 0)/s))*exp(-(x**2+y**2)/(s+4*max(time_reverse - t, 0)))
 
 def game_loop():
-    pos_x = 700
-    pos_y = 700
+    pos_x = 600
+    pos_y = 600
     perfect_x = 700
     perfect_y = 700
     t0 = 0
@@ -167,7 +170,7 @@ def game_loop():
 	pos_x, pos_y = within_window(pos_x, pos_y)
 	# print("New pos: " + str(pos_x) + ", " + str(pos_y))
 	# DRAW
-	pygame.draw.circle(window, black, (pos_x, pos_y) , block_size)
+	pygame.draw.circle(window, green, (pos_x, pos_y) , block_size)
 	pygame.display.update()
 	clock.tick(FPS)
 	t0 += dt
